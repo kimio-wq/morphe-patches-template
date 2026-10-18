@@ -87,6 +87,9 @@ private val IMobileInterstitialFingerprint = Fingerprint(
     ),
 )
 
+/** オペコード名の表記ゆれ(MOVE_RESULT / move-result / const-string/jumbo)を吸収する */
+private fun String.norm() = filter { it.isLetter() }.lowercase()
+
 /**
  * `const-string <target>` → 直後の invoke → move-result の順で並ぶ箇所を探し、
  * move-result の直後にレジスタへ固定値を書き込んで分岐結果を上書きする。
@@ -104,7 +107,7 @@ private fun app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.forceFlag(
 
     // key の後ろ数命令以内にある最初の move-result* を探す
     val resultIndex = (strIndex + 1..strIndex + 6).first {
-        list[it].opcode.name.startsWith("MOVE_RESULT")
+        list[it].opcode.name.norm().startsWith("moveresult")
     }
     val reg = (list[resultIndex] as OneRegisterInstruction).registerA
     addInstruction(resultIndex + 1, "const/4 v$reg, 0x$value")
@@ -160,7 +163,7 @@ val removeAdsPatch = bytecodePatch(
         MainSetupAdFingerprint.method.apply {
             val list = instructions.toList()
             val castIndex = list.indexOfFirst {
-                it is ReferenceInstruction && it.opcode.name == "CHECK_CAST" &&
+                it is ReferenceInstruction && it.opcode.name.norm() == "checkcast" &&
                     it.reference.toString() == "Landroid/widget/LinearLayout;"
             }
             require(castIndex >= 0) { "広告エリアの check-cast が見つかりません" }
@@ -343,7 +346,7 @@ val changePackageNamePatch = bytecodePatch(
                 }
                 hits.forEach { (index, ins, renamed) ->
                     val reg = (ins as OneRegisterInstruction).registerA
-                    val op = if (ins.opcode.name == "CONST_STRING_JUMBO") "const-string/jumbo" else "const-string"
+                    val op = if (ins.opcode.name.norm() == "conststringjumbo") "const-string/jumbo" else "const-string"
                     val escaped = renamed.replace("\\", "\\\\").replace("\"", "\\\"")
                     mutableMethod.replaceInstruction(index, "$op v$reg, \"$escaped\"")
                 }
