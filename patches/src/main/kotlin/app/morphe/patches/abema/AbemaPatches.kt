@@ -43,13 +43,16 @@ private fun target(classType: String, name: String, params: String, ret: String)
     }
 )
 
-/** メソッドを即 return する。Z は false、V は return-void。 */
+/** 即 return する。V は return-void、Z は false、オブジェクト型は null。 */
 context(_: BytecodePatchContext)
 private fun Fingerprint.stub(returnTrue: Boolean = false) {
     val m = method
-    when (m.returnType) {
-        "V" -> m.addInstructions(0, "return-void")
-        "Z" -> m.addInstructions(0, "const/4 v0, 0x${if (returnTrue) 1 else 0}\nreturn v0")
+    when {
+        m.returnType == "V" -> m.addInstructions(0, "return-void")
+        m.returnType == "Z" ->
+            m.addInstructions(0, "const/4 v0, 0x${if (returnTrue) 1 else 0}\nreturn v0")
+        m.returnType.startsWith("L") || m.returnType.startsWith("[") ->
+            m.addInstructions(0, "const/4 v0, 0x0\nreturn-object v0")
         else -> error("Unsupported return type ${m.returnType} for ${m.name}")
     }
 }
