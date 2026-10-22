@@ -1,5 +1,6 @@
 package teke.patches.acestream.node
 
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
@@ -36,6 +37,7 @@ private fun target(classType: String, name: String, params: String, ret: String)
 )
 
 /** 先頭で即 return-void する (戻り値 V のメソッド専用)。 */
+context(_: BytecodePatchContext)
 private fun Fingerprint.stubVoid() {
     check(method.returnType == "V") { "${method.name} is not void" }
     method.addInstructions(0, "return-void")
