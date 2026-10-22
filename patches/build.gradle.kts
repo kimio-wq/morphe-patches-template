@@ -1,3 +1,5 @@
+group = "test.yuiimypatches"
+
 patches {
     about {
         name = "Raziko Radiko Patches"
