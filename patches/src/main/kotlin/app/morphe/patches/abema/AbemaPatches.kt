@@ -162,8 +162,7 @@ val abemaDisableAdInsertionPatch = bytecodePatch(
 @Suppress("unused")
 val abemaDisableTelemetryPatch = bytecodePatch(
     name = "Disable telemetry",
-    description = "Disables Adjust, New Relic, NPAW video analytics and ABEMA's own behavior-log uploads. " +
-        "Braze (push notifications), watch-time and feature-flag calls are left as they are.",
+    description = "Disables Adjust, New Relic and NPAW video analytics.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_ABEMA)
@@ -173,6 +172,18 @@ val abemaDisableTelemetryPatch = bytecodePatch(
         adjustInitFp.stub()
         newRelicStartFp.stub()
         npawFps.forEach { it.stub() }
+    }
+}
+
+@Suppress("unused")
+val abemaDisableMineTrackPatch = bytecodePatch(
+    name = "Disable ABEMA behavior logs",
+    description = "Disables DefaultMineTrackApi uploads. May affect app state (e.g. onboarding).",
+    default = false,
+) {
+    compatibleWith(COMPATIBILITY_ABEMA)
+
+    execute {
         mineTrackFps.forEach { it.stub() }
     }
 }
