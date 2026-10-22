@@ -8,6 +8,7 @@ import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import org.w3c.dom.Element
+import app.morphe.patcher.patch.BytecodePatchContext
 
 // 対象: AceStream Media (org.acestream.media.web) 3.1.80.0 arm64-v8a
 // 注意: 静的解析だけで書いたパッチです。実機での動作確認は未実施。
@@ -36,16 +37,13 @@ private fun target(classType: String, name: String, params: String, ret: String)
 )
 
 /** メソッドを即 return する。Z は false、V は return-void。 */
+/** メソッドを即 return する。Z は false、V は return-void。 */
+context(BytecodePatchContext)
 private fun Fingerprint.stub(returnTrue: Boolean = false) {
     val m = method
     when (m.returnType) {
         "V" -> m.addInstructions(0, "return-void")
-        "Z" -> {
-            check((m.implementation?.registerCount ?: 0) > 0) {
-                "No free register in ${m.definingClass}->${m.name}"
-            }
-            m.addInstructions(0, "const/4 v0, 0x${if (returnTrue) 1 else 0}\nreturn v0")
-        }
+        "Z" -> m.addInstructions(0, "const/4 v0, 0x${if (returnTrue) 1 else 0}\nreturn v0")
         else -> error("Unsupported return type ${m.returnType} for ${m.name}")
     }
 }
