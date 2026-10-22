@@ -37,8 +37,7 @@ private fun target(classType: String, name: String, params: String, ret: String)
 )
 
 /** メソッドを即 return する。Z は false、V は return-void。 */
-/** メソッドを即 return する。Z は false、V は return-void。 */
-context(BytecodePatchContext)
+context(_: BytecodePatchContext)
 private fun Fingerprint.stub(returnTrue: Boolean = false) {
     val m = method
     when (m.returnType) {
