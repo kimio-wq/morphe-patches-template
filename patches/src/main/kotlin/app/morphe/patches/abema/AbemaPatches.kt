@@ -1,5 +1,6 @@
 package teke.patches.abema
 
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.AppTarget
@@ -44,15 +45,13 @@ private fun target(classType: String, name: String, params: String, ret: String)
 
 /** 先頭で即 return する。V は return-void、オブジェクト型は null を返す。 */
 private fun Fingerprint.stub() {
+/** メソッドを即 return する。Z は false、V は return-void。 */
+context(BytecodePatchContext)
+private fun Fingerprint.stub(returnTrue: Boolean = false) {
     val m = method
-    when {
-        m.returnType == "V" -> m.addInstructions(0, "return-void")
-        m.returnType.startsWith("L") || m.returnType.startsWith("[") -> {
-            check((m.implementation?.registerCount ?: 0) > 0) {
-                "No free register in ${m.definingClass}->${m.name}"
-            }
-            m.addInstructions(0, "const/4 v0, 0x0\nreturn-object v0")
-        }
+    when (m.returnType) {
+        "V" -> m.addInstructions(0, "return-void")
+        "Z" -> m.addInstructions(0, "const/4 v0, 0x${if (returnTrue) 1 else 0}\nreturn v0")
         else -> error("Unsupported return type ${m.returnType} for ${m.name}")
     }
 }
