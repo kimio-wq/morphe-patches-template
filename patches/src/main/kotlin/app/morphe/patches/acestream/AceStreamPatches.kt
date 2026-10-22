@@ -36,6 +36,8 @@ private fun target(classType: String, name: String, params: String, ret: String)
     }
 )
 
+/** 先頭で即 return する。V は return-void、オブジェクト型は null を返す。 */
+private fun Fingerprint.stub() {
 /** メソッドを即 return する。Z は false、V は return-void。 */
 context(_: BytecodePatchContext)
 private fun Fingerprint.stub(returnTrue: Boolean = false) {
